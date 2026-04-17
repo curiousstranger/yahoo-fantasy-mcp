@@ -17,8 +17,13 @@ jobs:
         with:
           node-version: "20"
 
+      - uses: astral-sh/setup-uv@v5
+
       - name: Install mcpb CLI
         run: npm install -g @anthropic-ai/mcpb
+
+      - name: Sync dependencies
+        run: uv sync
 
       - name: Sync manifest version with pyproject.toml
         run: |
