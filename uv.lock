@@ -1590,13 +1590,13 @@ sdist = { url = "https://files.pythonhosted.org/packages/2a/77/afc15549babb71cea
 name = "yahoo-fantasy-mcp"
 version = "0.2.1"
 source = { editable = "." }
-
-[package.optional-dependencies]
 dependencies = [
     { name = "fastmcp" },
     { name = "yahoo-fantasy-api" },
     { name = "yahoo-oauth" },
 ]
+
+[package.optional-dependencies]
 dev = [
     { name = "pytest" },
 ]
@@ -1608,12 +1608,12 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "fastmcp", marker = "extra == 'dependencies'", specifier = ">=3.1.0" },
+    { name = "fastmcp", specifier = ">=3.1.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
-    { name = "yahoo-fantasy-api", marker = "extra == 'dependencies'", specifier = ">=2.0.0" },
-    { name = "yahoo-oauth", marker = "extra == 'dependencies'", specifier = ">=2.0.0" },
+    { name = "yahoo-fantasy-api", specifier = ">=2.0.0" },
+    { name = "yahoo-oauth", specifier = ">=2.0.0" },
 ]
-provides-extras = ["dev", "dependencies"]
+provides-extras = ["dev"]
 
 [package.metadata.requires-dev]
 dev = [{ name = "ruff", specifier = ">=0.15.11" }]
