@@ -39,14 +39,19 @@ def get_oauth() -> OAuth2:
     # yahoo_oauth reads credentials from the file; seed it on first run
     token_path = Path(token_file)
     if not token_path.exists():
-        token_path.write_text(
-            json.dumps(
-                {
-                    "consumer_key": client_id,
-                    "consumer_secret": client_secret,
-                }
+        # Create file with safe permissions (owner read/write only)
+        old_umask = os.umask(0o077)
+        try:
+            token_path.write_text(
+                json.dumps(
+                    {
+                        "consumer_key": client_id,
+                        "consumer_secret": client_secret,
+                    }
+                )
             )
-        )
+        finally:
+            os.umask(old_umask)
 
     return OAuth2(client_id, client_secret, from_file=token_file)
 
