@@ -1,0 +1,40 @@
+{
+  "manifest_version": "0.3",
+  "name": "yahoo-fantasy-mcp",
+  "display_name": "Yahoo Fantasy Sports",
+  "version": "0.1.0",
+  "description": "Yahoo Fantasy Sports roster management — assess your roster and make add/drop decisions",
+  "author": { "name": "Matt Cable", "email": "github@curiousstranger.org" },
+  "license": "MIT",
+  "server": {
+    "type": "python",
+    "entry_point": "src/yahoo_fantasy_mcp/server.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": ["run", "--project", "${__dirname}", "yahoo-fantasy-mcp"],
+      "env": {
+        "PYTHONUNBUFFERED": "1",
+        "YAHOO_CLIENT_ID": "${user_config.yahoo_client_id}",
+        "YAHOO_CLIENT_SECRET": "${user_config.yahoo_client_secret}",
+        "YAHOO_OAUTH_TOKEN_FILE": "${HOME}/.yahoo_fantasy_oauth2.json"
+      }
+    }
+  },
+  "user_config": {
+    "yahoo_client_id": {
+      "type": "string",
+      "title": "Yahoo Client ID",
+      "description": "Consumer key from your Yahoo Developer app (developer.yahoo.com/apps/)",
+      "sensitive": false,
+      "required": true
+    },
+    "yahoo_client_secret": {
+      "type": "string",
+      "title": "Yahoo Client Secret",
+      "description": "Consumer secret from your Yahoo Developer app",
+      "sensitive": true,
+      "required": true
+    }
+  },
+  "tools_generated": true
+}

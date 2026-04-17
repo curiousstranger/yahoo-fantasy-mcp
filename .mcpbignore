@@ -1,0 +1,12 @@
+.venv
+__pycache__
+*.pyc
+*.pyo
+.env
+.claude
+.pytest_cache
+.github
+tests
+*.mcpb
+dist
+uv.lock

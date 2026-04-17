@@ -1,0 +1,17 @@
+# Build artifacts
+dist/
+*.mcpb
+
+# Environment
+.env
+*.json.bak
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Test / tooling
+.pytest_cache/
+.ruff_cache/
