@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "yahoo-fantasy-mcp"
-version = "0.2.1"
+version = "0.2.2"
 description = "Yahoo Fantasy Sports MCP server for roster management"
 readme = "README.md"
 license = { text = "MIT" }
