@@ -22,7 +22,7 @@ def _auth_setup_error(client_id: str, client_secret: str) -> RuntimeError:
         cmd = (
             f"YAHOO_CLIENT_ID={client_id} "
             f"YAHOO_CLIENT_SECRET={client_secret} "
-            f"uv run --project {project_dir} yahoo-fantasy-mcp-auth"
+            f"uv run --project '{project_dir}' yahoo-fantasy-mcp-auth"
         )
     else:
         cmd = (

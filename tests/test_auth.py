@@ -186,7 +186,7 @@ def test_get_oauth_raises_with_uv_command_when_project_dir_set(tmp_path):
         get_oauth()
 
     msg = str(exc_info.value)
-    assert "uv run --project /bundle/install/dir yahoo-fantasy-mcp-auth" in msg
+    assert "uv run --project '/bundle/install/dir' yahoo-fantasy-mcp-auth" in msg
     assert "YAHOO_CLIENT_ID=my_key" in msg
     assert "YAHOO_CLIENT_SECRET=my_secret" in msg
 
