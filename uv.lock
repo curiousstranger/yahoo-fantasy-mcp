@@ -1588,7 +1588,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/2a/77/afc15549babb71cea
 
 [[package]]
 name = "yahoo-fantasy-mcp"
-version = "0.2.2"
+version = "0.3.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastmcp" },
