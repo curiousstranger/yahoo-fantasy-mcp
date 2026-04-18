@@ -134,7 +134,17 @@ This produces `yahoo-fantasy-mcp-0.1.0.mcpb` in the current directory. The `.mcp
 mcpb install yahoo-fantasy-mcp-0.1.0.mcpb
 ```
 
-After installation, complete the one-time OAuth flow by running `yahoo-fantasy-mcp-auth` in a terminal before using the server.
+### First-use authentication
+
+The first time you invoke any tool, the server will return an error with a copy/pastable command to complete the one-time OAuth flow. Open a terminal, run the command it gives you, and follow the prompts (a browser window will open — approve access and paste the code back at the prompt). After that, the token is saved and refreshes automatically.
+
+The command looks like this:
+
+```bash
+YAHOO_CLIENT_ID=<your_key> YAHOO_CLIENT_SECRET=<your_secret> uv run --project '<bundle_install_dir>' yahoo-fantasy-mcp-auth
+```
+
+The exact command with your credentials and install path is included in the error message — no manual lookup needed.
 
 ---
 
