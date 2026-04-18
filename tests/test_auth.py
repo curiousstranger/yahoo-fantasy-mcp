@@ -5,6 +5,8 @@ import os
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 # ---------------------------------------------------------------------------
 # _token_path
 # ---------------------------------------------------------------------------
@@ -80,11 +82,11 @@ def test_get_oauth_creates_token_file_when_missing(tmp_path):
     env = {"YAHOO_CLIENT_ID": "my_key", "YAHOO_CLIENT_SECRET": "my_secret"}
 
     with (
-        patch.dict(os.environ, env),
+        patch.dict(os.environ, env, clear=True),
         patch("yahoo_fantasy_mcp.auth._token_path", return_value=str(token_file)),
-        patch("yahoo_fantasy_mcp.auth.OAuth2") as mock_oauth,
+        patch("yahoo_fantasy_mcp.auth.OAuth2", side_effect=Exception("not authed")),
+        pytest.raises(RuntimeError),
     ):
-        mock_oauth.return_value = MagicMock()
         get_oauth()
 
     assert token_file.exists()
@@ -116,12 +118,18 @@ def test_get_oauth_does_not_overwrite_existing_token_file(tmp_path):
 
     data = json.loads(token_file.read_text())
     assert data["access_token"] == "existing_token"
+    assert data["consumer_key"] == "old_key"
 
 
 def test_get_oauth_passes_credentials_to_oauth2(tmp_path):
     from yahoo_fantasy_mcp.auth import get_oauth
 
     token_file = tmp_path / "token.json"
+    token_file.write_text(json.dumps({
+        "consumer_key": "my_key",
+        "consumer_secret": "my_secret",
+        "access_token": "tok",
+    }))
     env = {"YAHOO_CLIENT_ID": "my_key", "YAHOO_CLIENT_SECRET": "my_secret"}
 
     with (
@@ -135,12 +143,84 @@ def test_get_oauth_passes_credentials_to_oauth2(tmp_path):
     mock_oauth.assert_called_once_with("my_key", "my_secret", from_file=str(token_file))
 
 
+def test_get_oauth_raises_with_simple_command_when_no_project_dir(tmp_path):
+    from yahoo_fantasy_mcp.auth import get_oauth
+
+    token_file = tmp_path / "token.json"
+    env = {
+        "YAHOO_CLIENT_ID": "my_key",
+        "YAHOO_CLIENT_SECRET": "my_secret",
+    }
+
+    with (
+        patch.dict(os.environ, env, clear=True),
+        patch("yahoo_fantasy_mcp.auth._token_path", return_value=str(token_file)),
+        patch("yahoo_fantasy_mcp.auth.OAuth2", side_effect=Exception("not authed")),
+        pytest.raises(RuntimeError) as exc_info,
+    ):
+        get_oauth()
+
+    msg = str(exc_info.value)
+    assert "yahoo-fantasy-mcp-auth" in msg
+    assert "YAHOO_CLIENT_ID=my_key" in msg
+    assert "YAHOO_CLIENT_SECRET=my_secret" in msg
+    assert "uv run --project" not in msg
+
+
+def test_get_oauth_raises_with_uv_command_when_project_dir_set(tmp_path):
+    from yahoo_fantasy_mcp.auth import get_oauth
+
+    token_file = tmp_path / "token.json"
+    env = {
+        "YAHOO_CLIENT_ID": "my_key",
+        "YAHOO_CLIENT_SECRET": "my_secret",
+        "YAHOO_PROJECT_DIR": "/bundle/install/dir",
+    }
+
+    with (
+        patch.dict(os.environ, env, clear=True),
+        patch("yahoo_fantasy_mcp.auth._token_path", return_value=str(token_file)),
+        patch("yahoo_fantasy_mcp.auth.OAuth2", side_effect=Exception("not authed")),
+        pytest.raises(RuntimeError) as exc_info,
+    ):
+        get_oauth()
+
+    msg = str(exc_info.value)
+    assert "uv run --project /bundle/install/dir yahoo-fantasy-mcp-auth" in msg
+    assert "YAHOO_CLIENT_ID=my_key" in msg
+    assert "YAHOO_CLIENT_SECRET=my_secret" in msg
+
+
+def test_get_oauth_raises_when_oauth2_throws(tmp_path):
+    from yahoo_fantasy_mcp.auth import get_oauth
+
+    token_file = tmp_path / "token.json"
+    token_file.write_text(json.dumps({
+        "consumer_key": "my_key",
+        "consumer_secret": "my_secret",
+        "access_token": "tok",
+    }))
+    env = {"YAHOO_CLIENT_ID": "my_key", "YAHOO_CLIENT_SECRET": "my_secret"}
+
+    with (
+        patch.dict(os.environ, env, clear=True),
+        patch("yahoo_fantasy_mcp.auth._token_path", return_value=str(token_file)),
+        patch("yahoo_fantasy_mcp.auth.OAuth2", side_effect=Exception("auth failed")),
+        pytest.raises(RuntimeError) as exc_info,
+    ):
+        get_oauth()
+
+    assert "yahoo-fantasy-mcp-auth" in str(exc_info.value)
+    assert "YAHOO_CLIENT_ID=my_key" in str(exc_info.value)
+    assert "YAHOO_CLIENT_SECRET=my_secret" in str(exc_info.value)
+
+
 # ---------------------------------------------------------------------------
 # run_initial_auth
 # ---------------------------------------------------------------------------
 
 
-def test_run_initial_auth_prints_success_when_token_valid(capsys, tmp_path):
+def test_run_initial_auth_prints_success_when_token_valid(capsys):
     from yahoo_fantasy_mcp.auth import run_initial_auth
 
     sc = MagicMock()

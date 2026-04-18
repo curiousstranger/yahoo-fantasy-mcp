@@ -16,7 +16,8 @@
         "PYTHONUNBUFFERED": "1",
         "YAHOO_CLIENT_ID": "${user_config.yahoo_client_id}",
         "YAHOO_CLIENT_SECRET": "${user_config.yahoo_client_secret}",
-        "YAHOO_OAUTH_TOKEN_FILE": "${HOME}/.yahoo_fantasy_oauth2.json"
+        "YAHOO_OAUTH_TOKEN_FILE": "${HOME}/.yahoo_fantasy_oauth2.json",
+        "YAHOO_PROJECT_DIR": "${__dirname}"
       }
     }
   },

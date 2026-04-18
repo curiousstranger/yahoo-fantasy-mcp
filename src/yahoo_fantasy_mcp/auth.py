@@ -16,6 +16,26 @@ def _token_path() -> str:
     return os.environ.get("YAHOO_OAUTH_TOKEN_FILE", str(default))
 
 
+def _auth_setup_error(client_id: str, client_secret: str) -> RuntimeError:
+    project_dir = os.environ.get("YAHOO_PROJECT_DIR")
+    if project_dir:
+        cmd = (
+            f"YAHOO_CLIENT_ID={client_id} "
+            f"YAHOO_CLIENT_SECRET={client_secret} "
+            f"uv run --project {project_dir} yahoo-fantasy-mcp-auth"
+        )
+    else:
+        cmd = (
+            f"YAHOO_CLIENT_ID={client_id} "
+            f"YAHOO_CLIENT_SECRET={client_secret} "
+            f"yahoo-fantasy-mcp-auth"
+        )
+    return RuntimeError(
+        "Yahoo OAuth setup incomplete. Run this command in your terminal:\n\n"
+        f"  {cmd}"
+    )
+
+
 def get_oauth() -> OAuth2:
     """Return an authenticated OAuth2 session.
 
@@ -53,7 +73,10 @@ def get_oauth() -> OAuth2:
         finally:
             os.umask(old_umask)
 
-    return OAuth2(client_id, client_secret, from_file=token_file)
+    try:
+        return OAuth2(client_id, client_secret, from_file=token_file)
+    except Exception as exc:
+        raise _auth_setup_error(client_id, client_secret) from exc
 
 
 def run_initial_auth() -> None:
