@@ -1,0 +1,235 @@
+# README Restructure Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Restructure `README.md` so users are routed to the correct install path immediately — Claude Desktop / Claude Code users see the `.mcpb` flow first, all other client users follow the manual install path.
+
+**Architecture:** Single file rewrite. The shared Yahoo Developer App setup section stays at the top. The document then forks into two self-contained install paths: "Claude Desktop / Claude Code" (`.mcpb` bundle) and "All Other Clients" (manual wheel install). Shared developer and reference content goes at the bottom.
+
+**Tech Stack:** Markdown only.
+
+---
+
+### Task 1: Rewrite README.md
+
+**Files:**
+- Modify: `README.md`
+
+- [ ] **Step 1: Replace the full contents of `README.md` with the following**
+
+```markdown
+# yahoo-fantasy-mcp
+
+An MCP server for Yahoo Fantasy Sports roster management. Exposes read-only tools that let an AI assistant (or any MCP client) list your leagues, inspect your roster, and find free agents and waiver wire pickups.
+
+## Setting up a Yahoo Developer App
+
+Yahoo requires each user to create their own developer app. It takes about 5 minutes and is free.
+
+1. Go to [developer.yahoo.com/apps](https://developer.yahoo.com/apps/) and sign in with your Yahoo account.
+2. Click **Create an App**.
+3. Fill in the fields:
+   - **Application Name:** anything you like, e.g. `Fantasy MCP`
+   - **Redirect URI(s):** leave blank
+4. Under **OAuth Client Type**, select **Confidential Client**.
+5. Under **API Permissions**, check **Fantasy Sports** and select **Read**.
+6. Click **Create App**.
+7. Copy your **Client ID** and **Client Secret** — you'll need both when configuring the server.
+
+> **Why your own app?** Most OAuth2 APIs support PKCE, which lets an installed app ship a single public client ID and have each user authenticate without needing their own credentials. Yahoo's developer portal shows a "Public Client" option but it returns a 401 error on creation and is not usable in practice. Since a client secret is therefore required and embedding a shared secret in a distributed app is a security risk, each user provides their own key/secret pair instead — your data stays yours and API rate limits apply per-user.
+
+## Installation
+
+### Claude Desktop / Claude Code
+
+Install via the `.mcpb` bundle — it handles configuration automatically and prompts for your credentials at install time.
+
+#### Prerequisites
+
+```bash
+npm install -g @anthropic-ai/mcpb
+```
+
+#### Install the bundle
+
+**Claude Desktop / Claude Code:** Double-click the `.mcpb` file. The host will prompt for your **Client ID** and **Client Secret** from your [Yahoo Developer App](#setting-up-a-yahoo-developer-app).
+
+**CLI install:**
+
+```bash
+mcpb install yahoo-fantasy-mcp-0.3.0.mcpb
+```
+
+#### First-use authentication
+
+Installing the bundle does not complete authentication by itself. The first time you invoke any tool (e.g. asking Claude to list your leagues), the server returns an error with a ready-to-run command:
+
+```
+Yahoo OAuth setup incomplete. Run this command in your terminal:
+
+  YAHOO_CLIENT_ID=<your_key> YAHOO_CLIENT_SECRET=<your_secret> uv run --project '<bundle_install_dir>' yahoo-fantasy-mcp-auth
+```
+
+The exact command — with your credentials and install path already filled in — is included in the error. Copy it, paste it into a terminal, and follow the prompts:
+
+1. A browser window opens to Yahoo's authorization page.
+2. Approve access for your app.
+3. Yahoo shows a short code — paste it back at the terminal prompt.
+4. The token is saved to `~/.yahoo_fantasy_oauth2.json` and refreshes automatically from then on.
+
+### All Other Clients
+
+#### Prerequisites
+
+- Python 3.11+
+- [uv](https://docs.astral.sh/uv/) package manager
+
+#### Build & Install
+
+Build the wheel and install it as a `uv` tool so the `yahoo-fantasy-mcp` binary is on your PATH:
+
+```bash
+uv build
+uv tool install dist/yahoo_fantasy_mcp-*.whl
+```
+
+This installs two entry points:
+
+| Command | Purpose |
+|---|---|
+| `yahoo-fantasy-mcp` | Run the MCP server (stdio transport) |
+| `yahoo-fantasy-mcp-auth` | One-time interactive OAuth setup |
+
+#### Configuration
+
+Copy `.env.example` to `.env` and fill in your credentials:
+
+```bash
+cp .env.example .env
+```
+
+```dotenv
+YAHOO_CLIENT_ID=your_client_id_here
+YAHOO_CLIENT_SECRET=your_client_secret_here
+
+# Optional: override where the OAuth token is stored
+# YAHOO_OAUTH_TOKEN_FILE=~/.yahoo_fantasy_oauth2.json
+```
+
+The token file (`~/.yahoo_fantasy_oauth2.json` by default) is created automatically during authentication and refreshed on each run.
+
+#### Authentication
+
+Run the auth command **once** in a real terminal (not inside an MCP client):
+
+```bash
+yahoo-fantasy-mcp-auth
+```
+
+If running locally from source without the installed binary:
+
+```bash
+uv run --env-file .env yahoo-fantasy-mcp-auth
+```
+
+This opens your browser to authorize the Yahoo app. After you approve, paste the verifier code at the prompt. The token is saved and will refresh automatically from then on.
+
+#### MCP Configuration
+
+Add this block to your MCP client's config file. The server reads credentials from the `env` map.
+
+```json
+{
+  "mcpServers": {
+    "yahoo-fantasy": {
+      "command": "yahoo-fantasy-mcp",
+      "env": {
+        "YAHOO_CLIENT_ID": "your_client_id_here",
+        "YAHOO_CLIENT_SECRET": "your_client_secret_here"
+      }
+    }
+  }
+}
+```
+
+Config file locations:
+
+| Client | Path |
+|---|---|
+| Claude Desktop | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+| Claude Code (global) | `~/.claude/claude_desktop_config.json` |
+| Claude Code (project) | `.claude/settings.json` |
+
+---
+
+## Development
+
+For an editable install with all dev dependencies:
+
+```bash
+uv sync
+```
+
+### Running Tests
+
+```bash
+uv run pytest
+```
+
+The test suite covers `api.py`, `auth.py`, and `server.py`. No Yahoo credentials or network access required — all external calls are mocked.
+
+### Packaging as an .mcpb Bundle
+
+An `.mcpb` file is a ZIP archive containing the server and a `manifest.json`. It enables single-click installation in Claude Desktop and Claude Code without manual configuration.
+
+#### Prerequisites
+
+```bash
+npm install -g @anthropic-ai/mcpb
+```
+
+#### Pack the bundle
+
+```bash
+mcpb pack
+```
+
+This produces `yahoo-fantasy-mcp-0.3.0.mcpb` in the current directory. The `.mcpb` file is a build artifact and is not committed to source control.
+
+---
+
+## Available Tools
+
+| Tool | Description |
+|---|---|
+| `list_leagues` | List all your leagues for a given sport |
+| `get_stat_categories` | Get scoring stat categories (and valid `sort_by` values) for a league |
+| `get_roster` | Get your current roster; pass `sort_by` to include stats for comparison |
+| `get_free_agents` | Get available free agents, optionally filtered by position and sorted by stat |
+| `get_waiver_players` | Get players on the waiver wire, optionally filtered and sorted |
+
+Supported sports: `nfl`, `nba`, `mlb`, `nhl`
+
+## Typical Workflow
+
+1. **Find your league** — call `list_leagues(sport)` to get your `league_id`
+2. **Check scoring** — call `get_stat_categories(league_id)` to see what stats are tracked and get valid `sort_by` values
+3. **See your roster with stats** — call `get_roster(league_id, sort_by="PTS")` to view your players with recent stats
+4. **Find pickups** — call `get_free_agents` or `get_waiver_players` with the same `sort_by` to find available talent ranked by the same stat
+5. **Compare and decide** — ask the assistant to recommend add/drop moves by comparing the `stats` dicts across roster, free agents, and waivers
+```
+
+- [ ] **Step 2: Verify the file looks right**
+
+Scan through the rendered markdown and confirm:
+- "Setting up a Yahoo Developer App" appears before "Installation"
+- "Claude Desktop / Claude Code" subsection appears before "All Other Clients"
+- "Development" section (including packaging) appears after the install paths
+- "Available Tools" and "Typical Workflow" are at the bottom
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add README.md
+git commit -m "docs: restructure README to route users to correct install path"
+```
