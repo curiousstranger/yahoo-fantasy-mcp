@@ -2,12 +2,6 @@
 
 An MCP server for Yahoo Fantasy Sports roster management. Exposes read-only tools that let an AI assistant (or any MCP client) list your leagues, inspect your roster, and find free agents and waiver wire pickups.
 
-## Prerequisites
-
-- Python 3.11+
-- [uv](https://docs.astral.sh/uv/) package manager
-- A Yahoo Developer App (see [Setting up a Yahoo Developer App](#setting-up-a-yahoo-developer-app) below)
-
 ## Setting up a Yahoo Developer App
 
 Yahoo requires each user to create their own developer app. It takes about 5 minutes and is free.
@@ -24,131 +18,29 @@ Yahoo requires each user to create their own developer app. It takes about 5 min
 
 > **Why your own app?** Most OAuth2 APIs support PKCE, which lets an installed app ship a single public client ID and have each user authenticate without needing their own credentials. Yahoo's developer portal shows a "Public Client" option but it returns a 401 error on creation and is not usable in practice. Since a client secret is therefore required and embedding a shared secret in a distributed app is a security risk, each user provides their own key/secret pair instead — your data stays yours and API rate limits apply per-user.
 
-## Build & Install
+## Installation
 
-Build the wheel and install it as a `uv` tool so the `yahoo-fantasy-mcp` binary is on your PATH:
+### Claude Desktop / Claude Code
 
-```bash
-uv build
-uv tool install dist/yahoo_fantasy_mcp-*.whl
-```
+Install via the `.mcpb` bundle — it handles configuration automatically and prompts for your credentials at install time.
 
-For development (editable install with test dependencies):
-
-```bash
-uv sync
-```
-
-This installs two entry points:
-
-| Command | Purpose |
-|---|---|
-| `yahoo-fantasy-mcp` | Run the MCP server (stdio transport) |
-| `yahoo-fantasy-mcp-auth` | One-time interactive OAuth setup |
-
-## Running Tests
-
-```bash
-uv run pytest
-```
-
-The test suite covers `api.py`, `auth.py`, and `server.py`. No Yahoo credentials or network access required — all external calls are mocked.
-
-## Configuration
-
-Copy `.env.example` to `.env` and fill in your credentials:
-
-```bash
-cp .env.example .env
-```
-
-```dotenv
-YAHOO_CLIENT_ID=your_consumer_key_here
-YAHOO_CLIENT_SECRET=your_consumer_secret_here
-
-# Optional: override where the OAuth token is stored
-# YAHOO_OAUTH_TOKEN_FILE=~/.yahoo_fantasy_oauth2.json
-```
-
-The token file (`~/.yahoo_fantasy_oauth2.json` by default) is created automatically during authentication and refreshed on each run.
-
-## Authentication
-
-Run the auth command **once** in a real terminal (not inside an MCP client):
-
-```bash
-yahoo-fantasy-mcp-auth
-```
-
-If running locally from source without the installed binary:
-
-```bash
-uv run --env-file .env yahoo-fantasy-mcp-auth
-```
-
-This opens your browser to authorize the Yahoo app. After you approve, paste the verifier code at the prompt. The token is saved and will refresh automatically from then on.
-
-## MCP Configuration
-
-Add this block to your MCP client's config file. The server reads credentials from the `env` map.
-
-```json
-{
-  "mcpServers": {
-    "yahoo-fantasy": {
-      "command": "yahoo-fantasy-mcp",
-      "env": {
-        "YAHOO_CLIENT_ID": "your_consumer_key_here",
-        "YAHOO_CLIENT_SECRET": "your_consumer_secret_here"
-      }
-    }
-  }
-}
-```
-
-Config file locations:
-
-| Client | Path |
-|---|---|
-| Claude Desktop | `~/Library/Application Support/Claude/claude_desktop_config.json` |
-| Claude Code (global) | `~/.claude/claude_desktop_config.json` |
-| Claude Code (project) | `.claude/settings.json` |
-
-## Packaging as an .mcpb Bundle
-
-An `.mcpb` file is a ZIP archive containing the server and a `manifest.json`. It enables single-click installation in Claude Desktop and other MCP hosts without manual configuration.
-
-### Prerequisites
+#### Prerequisites
 
 ```bash
 npm install -g @anthropic-ai/mcpb
 ```
 
-### manifest.json
+#### Install the bundle
 
-A `manifest.json` is included at the project root. It uses the `python` server type and runs the server via `uv run --project`. Update the `author` field before publishing.
-
-The `user_config` section declares `yahoo_client_id` and `yahoo_client_secret` — these are prompted at install time, with the secret stored in the OS keychain.
-
-### Pack the bundle
-
-```bash
-mcpb pack
-```
-
-This produces `yahoo-fantasy-mcp-0.1.0.mcpb` in the current directory. The `.mcpb` file is a build artifact and is not committed to source control.
-
-### Install the bundle
-
-**Claude Desktop / Claude Code:** Double-click the `.mcpb` file. The host will prompt for your **Yahoo Consumer Key** and **Consumer Secret** — these are the credentials from your [Yahoo Developer App](#setting-up-a-yahoo-developer-app).
+**Claude Desktop / Claude Code:** Double-click the `.mcpb` file. The host will prompt for your **Client ID** and **Client Secret** from your [Yahoo Developer App](#setting-up-a-yahoo-developer-app).
 
 **CLI install:**
 
 ```bash
-mcpb install yahoo-fantasy-mcp-0.1.0.mcpb
+mcpb install yahoo-fantasy-mcp-0.3.0.mcpb
 ```
 
-### First-use authentication
+#### First-use authentication
 
 Installing the bundle does not complete authentication by itself. The first time you invoke any tool (e.g. asking Claude to list your leagues), the server returns an error with a ready-to-run command:
 
@@ -164,6 +56,125 @@ The exact command — with your credentials and install path already filled in �
 2. Approve access for your app.
 3. Yahoo shows a short code — paste it back at the terminal prompt.
 4. The token is saved to `~/.yahoo_fantasy_oauth2.json` and refreshes automatically from then on.
+
+### All Other Clients
+
+#### Prerequisites
+
+- Python 3.11+
+- [uv](https://docs.astral.sh/uv/) package manager
+
+#### Build & Install
+
+Build the wheel and install it as a `uv` tool so the `yahoo-fantasy-mcp` binary is on your PATH:
+
+```bash
+uv build
+uv tool install dist/yahoo_fantasy_mcp-*.whl
+```
+
+This installs two entry points:
+
+| Command | Purpose |
+|---|---|
+| `yahoo-fantasy-mcp` | Run the MCP server (stdio transport) |
+| `yahoo-fantasy-mcp-auth` | One-time interactive OAuth setup |
+
+#### Configuration
+
+Copy `.env.example` to `.env` and fill in your credentials:
+
+```bash
+cp .env.example .env
+```
+
+```dotenv
+YAHOO_CLIENT_ID=your_client_id_here
+YAHOO_CLIENT_SECRET=your_client_secret_here
+
+# Optional: override where the OAuth token is stored
+# YAHOO_OAUTH_TOKEN_FILE=~/.yahoo_fantasy_oauth2.json
+```
+
+The token file (`~/.yahoo_fantasy_oauth2.json` by default) is created automatically during authentication and refreshed on each run.
+
+#### Authentication
+
+Run the auth command **once** in a real terminal (not inside an MCP client):
+
+```bash
+yahoo-fantasy-mcp-auth
+```
+
+If running locally from source without the installed binary:
+
+```bash
+uv run --env-file .env yahoo-fantasy-mcp-auth
+```
+
+This opens your browser to authorize the Yahoo app. After you approve, paste the verifier code at the prompt. The token is saved and will refresh automatically from then on.
+
+#### MCP Configuration
+
+Add this block to your MCP client's config file. The server reads credentials from the `env` map.
+
+```json
+{
+  "mcpServers": {
+    "yahoo-fantasy": {
+      "command": "yahoo-fantasy-mcp",
+      "env": {
+        "YAHOO_CLIENT_ID": "your_client_id_here",
+        "YAHOO_CLIENT_SECRET": "your_client_secret_here"
+      }
+    }
+  }
+}
+```
+
+Config file locations:
+
+| Client | Path |
+|---|---|
+| Claude Desktop | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+| Claude Code (global) | `~/.claude/claude_desktop_config.json` |
+| Claude Code (project) | `.claude/settings.json` |
+
+---
+
+## Development
+
+For an editable install with all dev dependencies:
+
+```bash
+uv sync
+```
+
+### Running Tests
+
+```bash
+uv run pytest
+```
+
+The test suite covers `api.py`, `auth.py`, and `server.py`. No Yahoo credentials or network access required — all external calls are mocked.
+
+### Packaging as an .mcpb Bundle
+
+An `.mcpb` file is a ZIP archive containing the server and a `manifest.json`. It enables single-click installation in Claude Desktop and Claude Code without manual configuration.
+
+#### Prerequisites
+
+```bash
+npm install -g @anthropic-ai/mcpb
+```
+
+#### Pack the bundle
+
+```bash
+mcpb pack
+```
+
+This produces `yahoo-fantasy-mcp-0.3.0.mcpb` in the current directory. The `.mcpb` file is a build artifact and is not committed to source control.
 
 ---
 
