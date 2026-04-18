@@ -106,12 +106,6 @@ Run the auth command **once** in a real terminal (not inside an MCP client):
 yahoo-fantasy-mcp-auth
 ```
 
-If running locally from source without the installed binary:
-
-```bash
-uv run --env-file .env yahoo-fantasy-mcp-auth
-```
-
 This opens your browser to authorize the Yahoo app. After you approve, paste the verifier code at the prompt. The token is saved and will refresh automatically from then on.
 
 #### MCP Configuration
@@ -148,6 +142,14 @@ For an editable install with all dev dependencies:
 
 ```bash
 uv sync
+```
+
+### Authentication (from source)
+
+If you haven't installed the wheel, run auth via `uv`:
+
+```bash
+uv run --env-file .env yahoo-fantasy-mcp-auth
 ```
 
 ### Running Tests
