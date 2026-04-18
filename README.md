@@ -24,21 +24,9 @@ Yahoo requires each user to create their own developer app. It takes about 5 min
 
 Install via the `.mcpb` bundle — it handles configuration automatically and prompts for your credentials at install time.
 
-#### Prerequisites
-
-```bash
-npm install -g @anthropic-ai/mcpb
-```
-
 #### Install the bundle
 
-**Claude Desktop / Claude Code:** Double-click the `.mcpb` file. The host will prompt for your **Client ID** and **Client Secret** from your [Yahoo Developer App](#setting-up-a-yahoo-developer-app).
-
-**CLI install:**
-
-```bash
-mcpb install yahoo-fantasy-mcp-0.3.0.mcpb
-```
+Download the latest `yahoo-fantasy-mcp-*.mcpb` from the [Releases page](https://github.com/curiousstranger/yahoo-fantasy-mcp/releases), then double-click it (or drag it into Claude Desktop). The host will prompt for your **Client ID** and **Client Secret** from your [Yahoo Developer App](#setting-up-a-yahoo-developer-app).
 
 #### First-use authentication
 
