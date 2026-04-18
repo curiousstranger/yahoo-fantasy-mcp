@@ -6,6 +6,7 @@ Afterwards, the token is saved and refreshed automatically.
 
 import json
 import os
+import sys
 from pathlib import Path
 
 from yahoo_oauth import OAuth2
@@ -72,6 +73,14 @@ def get_oauth() -> OAuth2:
             )
         finally:
             os.umask(old_umask)
+
+    # In a non-interactive context (MCP stdio), yahoo_oauth blocks forever on
+    # input() waiting for the OAuth verifier code rather than raising — so we
+    # must check before calling it.  When stdin is a real terminal (i.e.
+    # running yahoo-fantasy-mcp-auth), we let OAuth2 handle the flow normally.
+    token_data = json.loads(token_path.read_text())
+    if "access_token" not in token_data and not sys.stdin.isatty():
+        raise _auth_setup_error(client_id, client_secret)
 
     try:
         return OAuth2(client_id, client_secret, from_file=token_file)
