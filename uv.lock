@@ -1596,27 +1596,24 @@ dependencies = [
     { name = "yahoo-oauth" },
 ]
 
-[package.optional-dependencies]
-dev = [
-    { name = "pytest" },
-]
-
 [package.dev-dependencies]
 dev = [
+    { name = "pytest" },
     { name = "ruff" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "fastmcp", specifier = ">=3.1.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "yahoo-fantasy-api", specifier = ">=2.0.0" },
     { name = "yahoo-oauth", specifier = ">=2.0.0" },
 ]
-provides-extras = ["dev"]
 
 [package.metadata.requires-dev]
-dev = [{ name = "ruff", specifier = ">=0.15.11" }]
+dev = [
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "ruff", specifier = ">=0.15.11" },
+]
 
 [[package]]
 name = "yahoo-oauth"

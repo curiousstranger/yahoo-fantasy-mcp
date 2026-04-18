@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "yahoo-fantasy-mcp",
   "display_name": "Yahoo Fantasy Sports",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Yahoo Fantasy Sports roster management — assess your roster and make add/drop decisions",
   "author": { "name": "Matt Cable", "email": "github@curiousstranger.org" },
   "license": "MIT",
