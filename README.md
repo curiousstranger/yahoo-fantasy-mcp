@@ -16,11 +16,11 @@ Yahoo requires each user to create their own developer app. It takes about 5 min
 2. Click **Create an App**.
 3. Fill in the fields:
    - **Application Name:** anything you like, e.g. `Fantasy MCP`
-   - **Application Type:** select **Installed Application**
-   - **Callback Domain:** leave blank or enter `localhost`
-4. Under **API Permissions**, expand **Fantasy Sports** and check **Read**.
-5. Click **Create App**.
-6. Copy your **Consumer Key** and **Consumer Secret** — you'll need both when configuring the server.
+   - **Redirect URI(s):** leave blank
+4. Under **OAuth Client Type**, select **Confidential Client**.
+5. Under **API Permissions**, check **Fantasy Sports** and select **Read**.
+6. Click **Create App**.
+7. Copy your **Client ID** and **Client Secret** — you'll need both when configuring the server.
 
 > **Why your own app?** Most OAuth2 APIs support PKCE, which lets an installed app ship a single public client ID and have each user authenticate without needing their own credentials. Yahoo's developer portal shows a "Public Client" option but it returns a 401 error on creation and is not usable in practice. Since a client secret is therefore required and embedding a shared secret in a distributed app is a security risk, each user provides their own key/secret pair instead — your data stays yours and API rate limits apply per-user.
 
