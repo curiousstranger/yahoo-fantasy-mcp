@@ -16,9 +16,6 @@ dependencies = [
     "yahoo-oauth>=2.0.0",
 ]
 
-[project.optional-dependencies]
-dev = ["pytest>=8.0"]
-
 [project.scripts]
 yahoo-fantasy-mcp = "yahoo_fantasy_mcp.server:main"
 yahoo-fantasy-mcp-auth = "yahoo_fantasy_mcp.auth:run_initial_auth"
@@ -51,5 +48,6 @@ ignore = [
 
 [dependency-groups]
 dev = [
+    "pytest>=8.0",
     "ruff>=0.15.11",
 ]

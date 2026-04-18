@@ -36,7 +36,7 @@ uv tool install dist/yahoo_fantasy_mcp-*.whl
 For development (editable install with test dependencies):
 
 ```bash
-uv pip install -e ".[dev]"
+uv sync
 ```
 
 This installs two entry points:
