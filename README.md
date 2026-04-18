@@ -6,9 +6,23 @@ An MCP server for Yahoo Fantasy Sports roster management. Exposes read-only tool
 
 - Python 3.11+
 - [uv](https://docs.astral.sh/uv/) package manager
-- A Yahoo Developer App — create one at https://developer.yahoo.com/apps/
-  - Set the app type to **Installed Application**
-  - Note your **Consumer Key** and **Consumer Secret**
+- A Yahoo Developer App (see [Setting up a Yahoo Developer App](#setting-up-a-yahoo-developer-app) below)
+
+## Setting up a Yahoo Developer App
+
+Yahoo requires each user to create their own developer app. It takes about 5 minutes and is free.
+
+1. Go to [developer.yahoo.com/apps](https://developer.yahoo.com/apps/) and sign in with your Yahoo account.
+2. Click **Create an App**.
+3. Fill in the fields:
+   - **Application Name:** anything you like, e.g. `Fantasy MCP`
+   - **Application Type:** select **Installed Application**
+   - **Callback Domain:** leave blank or enter `localhost`
+4. Under **API Permissions**, expand **Fantasy Sports** and check **Read**.
+5. Click **Create App**.
+6. Copy your **Consumer Key** and **Consumer Secret** — you'll need both when configuring the server.
+
+> **Why your own app?** Yahoo's API credentials are tied to the authorizing Yahoo account. Each user authenticates using their own key/secret pair so your data stays yours and API rate limits apply per-user.
 
 ## Build & Install
 
@@ -126,7 +140,7 @@ This produces `yahoo-fantasy-mcp-0.1.0.mcpb` in the current directory. The `.mcp
 
 ### Install the bundle
 
-**Claude Desktop / Claude Code:** Double-click the `.mcpb` file. The host prompts for your Yahoo credentials and handles configuration automatically.
+**Claude Desktop / Claude Code:** Double-click the `.mcpb` file. The host will prompt for your **Yahoo Consumer Key** and **Consumer Secret** — these are the credentials from your [Yahoo Developer App](#setting-up-a-yahoo-developer-app).
 
 **CLI install:**
 
@@ -136,15 +150,20 @@ mcpb install yahoo-fantasy-mcp-0.1.0.mcpb
 
 ### First-use authentication
 
-The first time you invoke any tool, the server will return an error with a copy/pastable command to complete the one-time OAuth flow. Open a terminal, run the command it gives you, and follow the prompts (a browser window will open — approve access and paste the code back at the prompt). After that, the token is saved and refreshes automatically.
+Installing the bundle does not complete authentication by itself. The first time you invoke any tool (e.g. asking Claude to list your leagues), the server returns an error with a ready-to-run command:
 
-The command looks like this:
+```
+Yahoo OAuth setup incomplete. Run this command in your terminal:
 
-```bash
-YAHOO_CLIENT_ID=<your_key> YAHOO_CLIENT_SECRET=<your_secret> uv run --project '<bundle_install_dir>' yahoo-fantasy-mcp-auth
+  YAHOO_CLIENT_ID=<your_key> YAHOO_CLIENT_SECRET=<your_secret> uv run --project '<bundle_install_dir>' yahoo-fantasy-mcp-auth
 ```
 
-The exact command with your credentials and install path is included in the error message — no manual lookup needed.
+The exact command — with your credentials and install path already filled in — is included in the error. Copy it, paste it into a terminal, and follow the prompts:
+
+1. A browser window opens to Yahoo's authorization page.
+2. Approve access for your app.
+3. Yahoo shows a short code — paste it back at the terminal prompt.
+4. The token is saved to `~/.yahoo_fantasy_oauth2.json` and refreshes automatically from then on.
 
 ---
 
