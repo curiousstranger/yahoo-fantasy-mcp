@@ -22,7 +22,7 @@ Yahoo requires each user to create their own developer app. It takes about 5 min
 5. Click **Create App**.
 6. Copy your **Consumer Key** and **Consumer Secret** — you'll need both when configuring the server.
 
-> **Why your own app?** Yahoo's API credentials are tied to the authorizing Yahoo account. Each user authenticates using their own key/secret pair so your data stays yours and API rate limits apply per-user.
+> **Why your own app?** Most OAuth2 APIs support PKCE, which lets an installed app ship a single public client ID and have each user authenticate without needing their own credentials. Yahoo's OAuth2 implementation does not support PKCE and requires a client secret for all flows. Since embedding a shared secret in a distributed app is a security risk, each user provides their own key/secret pair instead — your data stays yours and API rate limits apply per-user.
 
 ## Build & Install
 
