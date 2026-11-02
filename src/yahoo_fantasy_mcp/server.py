@@ -45,20 +45,22 @@ def _get_sc() -> OAuth2:
 
 
 @mcp.tool()
-def list_leagues(sport: str) -> list[dict]:
-    """List all Yahoo Fantasy leagues for the given sport.
+def list_leagues(sport: str, season: int | None = None) -> list[dict]:
+    """List your Yahoo Fantasy leagues for the given sport in one season.
 
-    Call this first to discover your league_id values.
+    Call this first to discover your league_id values. Defaults to the
+    current season; pass season only to look up a past season's league.
 
     Args:
         sport: Sport code — one of: nfl, nba, mlb, nhl.
+        season: Season year (e.g. 2024). Omit for the current season.
 
     Returns:
         List of leagues with: league_id, name, num_teams, scoring_type, season.
 
     """
     sc = _get_sc()
-    return api.list_leagues(sc, sport)
+    return api.list_leagues(sc, sport, season)
 
 
 @mcp.tool()

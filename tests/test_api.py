@@ -49,14 +49,15 @@ def test_list_leagues_returns_fields_from_settings():
         }
     )
     game = _make_game(league)
-    game.league_ids.return_value = ["nfl.l.123456"]
+    game.game_id.return_value = "470"
+    game.league_ids.return_value = ["470.l.123456"]
 
     with patch("yahoo_fantasy_mcp.api.yfa.Game", return_value=game):
         result = api.list_leagues(MagicMock(), "nfl")
 
     assert len(result) == 1
     assert result[0] == {
-        "league_id": "nfl.l.123456",
+        "league_id": "470.l.123456",
         "name": "Monday Night Mayhem",
         "num_teams": 12,
         "scoring_type": "head",
@@ -68,14 +69,15 @@ def test_list_leagues_returns_empty_for_failed_league():
     from yahoo_fantasy_mcp import api
 
     game = MagicMock()
-    game.league_ids.return_value = ["nfl.l.bad"]
+    game.game_id.return_value = "470"
+    game.league_ids.return_value = ["470.l.bad"]
     game.to_league.side_effect = Exception("API error")
 
     with patch("yahoo_fantasy_mcp.api.yfa.Game", return_value=game):
         result = api.list_leagues(MagicMock(), "nfl")
 
     assert len(result) == 1
-    assert result[0]["league_id"] == "nfl.l.bad"
+    assert result[0]["league_id"] == "470.l.bad"
     assert result[0]["name"] == ""
     assert result[0]["num_teams"] == 0
 
@@ -100,7 +102,8 @@ def test_list_leagues_returns_multiple():
         }
     )
     game = MagicMock()
-    game.league_ids.return_value = ["nfl.l.111", "nfl.l.222"]
+    game.game_id.return_value = "470"
+    game.league_ids.return_value = ["470.l.111", "470.l.222"]
     game.to_league.side_effect = [league_a, league_b]
 
     with patch("yahoo_fantasy_mcp.api.yfa.Game", return_value=game):
@@ -109,6 +112,49 @@ def test_list_leagues_returns_multiple():
     assert len(result) == 2
     assert result[0]["name"] == "League A"
     assert result[1]["name"] == "League B"
+
+
+def test_list_leagues_filters_by_sport_server_side():
+    from yahoo_fantasy_mcp import api
+
+    game = _make_game(_make_league())
+    game.game_id.return_value = "477"
+    game.league_ids.return_value = []
+
+    with patch("yahoo_fantasy_mcp.api.yfa.Game", return_value=game):
+        api.list_leagues(MagicMock(), "nhl")
+
+    game.league_ids.assert_called_once_with(game_codes=["nhl"])
+
+
+def test_list_leagues_excludes_past_seasons():
+    from yahoo_fantasy_mcp import api
+
+    league = _make_league(settings={"name": "Current", "season": "2026"})
+    game = _make_game(league)
+    game.game_id.return_value = "477"
+    game.league_ids.return_value = ["64.l.33289", "465.l.1234", "477.l.140161"]
+
+    with patch("yahoo_fantasy_mcp.api.yfa.Game", return_value=game):
+        result = api.list_leagues(MagicMock(), "nhl")
+
+    assert [r["league_id"] for r in result] == ["477.l.140161"]
+    game.to_league.assert_called_once_with("477.l.140161")
+
+
+def test_list_leagues_with_season_filters_by_season():
+    from yahoo_fantasy_mcp import api
+
+    league = _make_league(settings={"name": "Old", "season": "2024"})
+    game = _make_game(league)
+    game.league_ids.return_value = ["453.l.5555"]
+
+    with patch("yahoo_fantasy_mcp.api.yfa.Game", return_value=game):
+        result = api.list_leagues(MagicMock(), "nhl", season=2024)
+
+    game.league_ids.assert_called_once_with(game_codes=["nhl"], seasons=["2024"])
+    game.game_id.assert_not_called()
+    assert [r["league_id"] for r in result] == ["453.l.5555"]
 
 
 # ---------------------------------------------------------------------------

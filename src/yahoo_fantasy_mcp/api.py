@@ -16,19 +16,32 @@ from yahoo_oauth import OAuth2
 logger = logging.getLogger(__name__)
 
 
-def list_leagues(sc: OAuth2, sport: str) -> list[dict]:
-    """List all leagues for the given sport in the current season.
+def list_leagues(sc: OAuth2, sport: str, season: int | None = None) -> list[dict]:
+    """List all leagues for the given sport in one season.
 
     Args:
         sc: Authenticated OAuth2 session.
         sport: Sport code — nfl, nba, mlb, or nhl.
+        season: Season year (e.g. 2024). None (default) means the current season.
 
     Returns:
         List of dicts with keys: league_id, name, num_teams, scoring_type, season.
 
     """
     game = yfa.Game(sc, sport)
-    league_ids = game.league_ids()
+    # Unfiltered, league_ids() returns every league the user has ever joined,
+    # across all sports and seasons.
+    if season is not None:
+        league_ids = game.league_ids(game_codes=[sport], seasons=[str(season)])
+    else:
+        # Each season is its own Yahoo game, so the current season's leagues
+        # are the ones keyed by the current game_id.
+        current_prefix = f"{game.game_id()}.l."
+        league_ids = [
+            lid
+            for lid in game.league_ids(game_codes=[sport])
+            if lid.startswith(current_prefix)
+        ]
 
     result = []
     for league_id in league_ids:
