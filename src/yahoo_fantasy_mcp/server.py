@@ -83,11 +83,16 @@ def get_roster(
     league_id: str,
     sort_by: str | None = None,
     stat_type: str = "lastmonth",
+    date: str | None = None,
+    week: int | None = None,
 ) -> list[dict]:
-    """Get your current roster for a fantasy league.
+    """Get your roster for a fantasy league, today or as set on a past/future date.
 
     Pass sort_by to include stats so you can compare your players directly
     against free agents and waiver wire results from the same call.
+
+    Pass date (NHL, NBA, MLB) or week (NFL) to see the lineup as set for
+    that day or week instead of today's.
 
     Args:
         league_id: League ID from list_leagues (e.g. "nfl.l.123456").
@@ -95,7 +100,12 @@ def get_roster(
             Use get_stat_categories to see valid values.
             When set, each player includes a 'stats' dict.
         stat_type: Time range for stats. One of: lastmonth (default),
-            lastweek, season, average_season.
+            lastweek, season, average_season. Stats always cover this
+            window, not the roster date or week.
+        date: Day to get the roster for, as "YYYY-MM-DD" (e.g. "2026-10-15").
+            NHL, NBA and MLB only. Defaults to today.
+        week: Week number to get the roster for (e.g. 3). NFL only.
+            Defaults to the current week.
 
     Returns:
         List of players with: player_id, player_key, name, eligible_positions,
@@ -104,7 +114,9 @@ def get_roster(
 
     """
     sc = _get_sc()
-    return api.get_roster(sc, league_id, sort_by=sort_by, stat_type=stat_type)
+    return api.get_roster(
+        sc, league_id, sort_by=sort_by, stat_type=stat_type, date=date, week=week
+    )
 
 
 @mcp.tool()

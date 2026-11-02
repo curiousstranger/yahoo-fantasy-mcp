@@ -280,6 +280,96 @@ def test_get_roster_no_stats_call_when_sort_by_omitted():
 
 
 # ---------------------------------------------------------------------------
+# get_roster — date / week
+# ---------------------------------------------------------------------------
+
+
+def test_get_roster_defaults_to_current_roster():
+    from yahoo_fantasy_mcp import api
+
+    league = _make_league()
+
+    with patch("yahoo_fantasy_mcp.api.yfa.Game", return_value=_make_game(league)):
+        api.get_roster(MagicMock(), "nba.l.99999")
+
+    league.to_team.return_value.roster.assert_called_once_with(week=None, day=None)
+
+
+def test_get_roster_date_passed_as_day():
+    import datetime
+
+    from yahoo_fantasy_mcp import api
+
+    league = _make_league(settings={"game_code": "nhl"})
+
+    with patch("yahoo_fantasy_mcp.api.yfa.Game", return_value=_make_game(league)):
+        api.get_roster(MagicMock(), "477.l.99999", date="2026-10-15")
+
+    league.to_team.return_value.roster.assert_called_once_with(
+        week=None, day=datetime.date(2026, 10, 15)
+    )
+
+
+def test_get_roster_week_passed_for_nfl():
+    from yahoo_fantasy_mcp import api
+
+    league = _make_league(settings={"game_code": "nfl"})
+
+    with patch("yahoo_fantasy_mcp.api.yfa.Game", return_value=_make_game(league)):
+        api.get_roster(MagicMock(), "461.l.99999", week=3)
+
+    league.to_team.return_value.roster.assert_called_once_with(week=3, day=None)
+
+
+def test_get_roster_rejects_week_for_non_nfl():
+    import pytest
+
+    from yahoo_fantasy_mcp import api
+
+    league = _make_league(settings={"game_code": "nhl"})
+
+    with (
+        patch("yahoo_fantasy_mcp.api.yfa.Game", return_value=_make_game(league)),
+        pytest.raises(ValueError, match="NFL"),
+    ):
+        api.get_roster(MagicMock(), "477.l.99999", week=3)
+
+
+def test_get_roster_rejects_date_for_nfl():
+    import pytest
+
+    from yahoo_fantasy_mcp import api
+
+    league = _make_league(settings={"game_code": "nfl"})
+
+    with (
+        patch("yahoo_fantasy_mcp.api.yfa.Game", return_value=_make_game(league)),
+        pytest.raises(ValueError, match="week"),
+    ):
+        api.get_roster(MagicMock(), "461.l.99999", date="2026-10-15")
+
+
+def test_get_roster_rejects_malformed_date():
+    import pytest
+
+    from yahoo_fantasy_mcp import api
+
+    with pytest.raises(ValueError, match="YYYY-MM-DD"):
+        api.get_roster(MagicMock(), "477.l.99999", date="10/15/2026")
+
+
+def test_get_roster_skips_settings_lookup_without_date_or_week():
+    from yahoo_fantasy_mcp import api
+
+    league = _make_league()
+
+    with patch("yahoo_fantasy_mcp.api.yfa.Game", return_value=_make_game(league)):
+        api.get_roster(MagicMock(), "477.l.99999")
+
+    league.settings.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
 # get_free_agents
 # ---------------------------------------------------------------------------
 

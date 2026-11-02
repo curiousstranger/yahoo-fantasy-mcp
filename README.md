@@ -174,7 +174,7 @@ This produces `yahoo-fantasy-mcp-0.3.0.mcpb` in the current directory. The `.mcp
 |---|---|
 | `list_leagues` | List all your leagues for a given sport |
 | `get_stat_categories` | Get scoring stat categories (and valid `sort_by` values) for a league |
-| `get_roster` | Get your current roster; pass `sort_by` to include stats for comparison |
+| `get_roster` | Get your roster for today, a given `date` (NHL/NBA/MLB) or `week` (NFL); pass `sort_by` to include stats for comparison |
 | `get_free_agents` | Get available free agents, optionally filtered by position and sorted by stat |
 | `get_waiver_players` | Get players on the waiver wire, optionally filtered and sorted |
 
