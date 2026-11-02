@@ -62,7 +62,12 @@ def test_get_roster_delegates_to_api_no_stats():
         server.get_roster("nba.l.99999")
 
     mock_api.assert_called_once_with(
-        sc, "nba.l.99999", sort_by=None, stat_type="lastmonth"
+        sc,
+        "nba.l.99999",
+        sort_by=None,
+        stat_type="lastmonth",
+        date=None,
+        week=None,
     )
 
 
@@ -76,7 +81,50 @@ def test_get_roster_passes_sort_by_and_stat_type():
         server.get_roster("nba.l.99999", sort_by="PTS", stat_type="lastweek")
 
     mock_api.assert_called_once_with(
-        sc, "nba.l.99999", sort_by="PTS", stat_type="lastweek"
+        sc,
+        "nba.l.99999",
+        sort_by="PTS",
+        stat_type="lastweek",
+        date=None,
+        week=None,
+    )
+
+
+def test_get_roster_passes_date():
+    import yahoo_fantasy_mcp.server as server
+
+    sc = _mock_sc()
+    with patch.object(server, "_get_sc", return_value=sc), patch.object(
+        server.api, "get_roster", return_value=[]
+    ) as mock_api:
+        server.get_roster("nhl.l.99999", date="2026-10-15")
+
+    mock_api.assert_called_once_with(
+        sc,
+        "nhl.l.99999",
+        sort_by=None,
+        stat_type="lastmonth",
+        date="2026-10-15",
+        week=None,
+    )
+
+
+def test_get_roster_passes_week():
+    import yahoo_fantasy_mcp.server as server
+
+    sc = _mock_sc()
+    with patch.object(server, "_get_sc", return_value=sc), patch.object(
+        server.api, "get_roster", return_value=[]
+    ) as mock_api:
+        server.get_roster("nfl.l.99999", week=3)
+
+    mock_api.assert_called_once_with(
+        sc,
+        "nfl.l.99999",
+        sort_by=None,
+        stat_type="lastmonth",
+        date=None,
+        week=3,
     )
 
 

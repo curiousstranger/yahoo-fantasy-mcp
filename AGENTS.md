@@ -70,7 +70,9 @@ get_stat_categories(league_id: str) -> list[dict]
 get_roster(
     league_id: str,
     sort_by: str | None = None,
-    stat_type: str = "lastmonth"
+    stat_type: str = "lastmonth",
+    date: str | None = None,
+    week: int | None = None
 ) -> list[dict]
 ```
 
@@ -79,8 +81,14 @@ get_roster(
 | `league_id` | str | required | From `list_leagues` |
 | `sort_by` | str \| None | `None` | Stat name from `get_stat_categories`. When set, each player includes a `stats` dict. |
 | `stat_type` | str | `"lastmonth"` | Time window: `lastmonth`, `lastweek`, `season`, `average_season` |
+| `date` | str \| None | `None` (today) | Roster as set on this day, `YYYY-MM-DD`. **NHL, NBA, MLB only.** |
+| `week` | int \| None | `None` (current week) | Roster as set for this week number. **NFL only.** |
 
-**Returns:** Your current roster. Pass `sort_by` to include stats for direct comparison with `get_free_agents` / `get_waiver_players` results.
+**Returns:** Your roster — today's by default, or as set for `date` / `week`. `selected_position` reflects the lineup on that day or week (e.g. `BN` for benched). Pass `sort_by` to include stats for direct comparison with `get_free_agents` / `get_waiver_players` results.
+
+Daily leagues (NHL, NBA, MLB) set lineups per day, so use `date`; NFL sets lineups per week, so use `week`. Passing the wrong one for the sport raises `ValueError`. Stats from `sort_by` always cover the `stat_type` window, not the roster date.
+
+Example — tomorrow's NHL lineup: `get_roster("nhl.l.12345", date="2026-11-02")`
 
 Without `sort_by`:
 ```json
@@ -218,3 +226,5 @@ Always call `get_stat_categories` to confirm valid values for the specific leagu
 | Invalid `league_id` | Exception from Yahoo API — verify with `list_leagues` first |
 | Invalid `sort_by` | Players return but `_sort_val` defaults to 0; results effectively unsorted — use `get_stat_categories` to confirm valid names |
 | League with no free agents | Empty list returned |
+| `week` on a non-NFL league, or `date` on an NFL league | `ValueError` naming the parameter to use instead |
+| `date` not in `YYYY-MM-DD` format | `ValueError` |

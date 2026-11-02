@@ -6,6 +6,7 @@ No Yahoo library objects escape this module.
 
 from __future__ import annotations
 
+import datetime
 import logging
 from typing import Any
 
@@ -80,6 +81,8 @@ def get_roster(
     league_id: str,
     sort_by: str | None = None,
     stat_type: str = "lastmonth",
+    date: str | None = None,
+    week: int | None = None,
 ) -> list[dict]:
     """Get the current user's roster for a league.
 
@@ -91,17 +94,45 @@ def get_roster(
             includes a 'stats' sub-dict for comparison with free agents / waivers.
         stat_type: Time range for stats when sort_by is set. One of:
             'lastmonth' (default), 'lastweek', 'season', 'average_season'.
+            Stats always cover this window, not the roster date or week.
+        date: Roster as set on this day, as "YYYY-MM-DD". NHL, NBA and MLB
+            only. Defaults to today.
+        week: Roster as set for this week number. NFL only. Defaults to the
+            current week.
 
     Returns:
         List of player dicts with keys: player_id, player_key, name, eligible_positions,
         selected_position, status. When sort_by is set, also includes a 'stats' dict.
 
+    Raises:
+        ValueError: If week is given for a non-NFL league, date is given for an
+            NFL league, or date is not in YYYY-MM-DD format.
+
     """
+    day = None
+    if date is not None:
+        try:
+            day = datetime.date.fromisoformat(date)
+        except ValueError:
+            raise ValueError(f"date must be YYYY-MM-DD, got {date!r}") from None
+
     sport = league_id.split(".")[0]
     game = yfa.Game(sc, sport)
     league = game.to_league(league_id)
+
+    if date is not None or week is not None:
+        # League IDs usually carry a numeric game ID ("461.l.123"), not the
+        # sport code, so ask the league which sport it is.
+        game_code = league.settings().get("game_code", sport)
+        if week is not None and game_code != "nfl":
+            raise ValueError(
+                f"week is only supported for NFL leagues; use date for {game_code}"
+            )
+        if date is not None and game_code == "nfl":
+            raise ValueError("NFL rosters are set by week; use week instead of date")
+
     team = league.to_team(league.team_key())
-    roster = team.roster()
+    roster = team.roster(week=week, day=day)
 
     result = []
     for player in roster:
