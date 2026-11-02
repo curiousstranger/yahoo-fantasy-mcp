@@ -142,6 +142,21 @@ def test_list_leagues_excludes_past_seasons():
     game.to_league.assert_called_once_with("477.l.140161")
 
 
+def test_list_leagues_with_season_filters_by_season():
+    from yahoo_fantasy_mcp import api
+
+    league = _make_league(settings={"name": "Old", "season": "2024"})
+    game = _make_game(league)
+    game.league_ids.return_value = ["453.l.5555"]
+
+    with patch("yahoo_fantasy_mcp.api.yfa.Game", return_value=game):
+        result = api.list_leagues(MagicMock(), "nhl", season=2024)
+
+    game.league_ids.assert_called_once_with(game_codes=["nhl"], seasons=["2024"])
+    game.game_id.assert_not_called()
+    assert [r["league_id"] for r in result] == ["453.l.5555"]
+
+
 # ---------------------------------------------------------------------------
 # get_stat_categories
 # ---------------------------------------------------------------------------

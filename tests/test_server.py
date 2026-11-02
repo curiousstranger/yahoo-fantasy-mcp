@@ -23,8 +23,21 @@ def test_list_leagues_delegates_to_api():
     ) as mock_api:
         result = server.list_leagues("nfl")
 
-    mock_api.assert_called_once_with(sc, "nfl")
+    mock_api.assert_called_once_with(sc, "nfl", None)
     assert result == expected
+
+
+def test_list_leagues_passes_season_to_api():
+    import yahoo_fantasy_mcp.server as server
+
+    sc = _mock_sc()
+
+    with patch.object(server, "_get_sc", return_value=sc), patch.object(
+        server.api, "list_leagues", return_value=[]
+    ) as mock_api:
+        server.list_leagues("nhl", season=2024)
+
+    mock_api.assert_called_once_with(sc, "nhl", 2024)
 
 
 # ---------------------------------------------------------------------------
