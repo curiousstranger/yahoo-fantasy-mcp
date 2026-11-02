@@ -26,12 +26,12 @@ list_leagues(sport: str) -> list[dict]
 |---|---|---|---|
 | `sport` | str | yes | One of: `nfl`, `nba`, `mlb`, `nhl` |
 
-**Returns:** List of leagues you belong to.
+**Returns:** Leagues you belong to for that sport in the current season only. Past seasons are excluded. Returns `[]` if you have no league in the sport this season. League IDs start with Yahoo's numeric game ID (e.g. `477.l.140161`), not the sport code.
 
 ```json
 [
   {
-    "league_id": "nfl.l.123456",
+    "league_id": "470.l.123456",
     "name": "Monday Night Mayhem",
     "num_teams": 12,
     "scoring_type": "head",

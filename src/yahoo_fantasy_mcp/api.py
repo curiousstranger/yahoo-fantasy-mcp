@@ -27,7 +27,15 @@ def list_leagues(sc: OAuth2, sport: str) -> list[dict]:
 
     """
     game = yfa.Game(sc, sport)
-    league_ids = game.league_ids()
+    # Unfiltered, league_ids() returns every league the user has ever joined,
+    # across all sports and seasons. Each season is its own Yahoo game, so the
+    # current season's leagues are the ones keyed by the current game_id.
+    current_prefix = f"{game.game_id()}.l."
+    league_ids = [
+        lid
+        for lid in game.league_ids(game_codes=[sport])
+        if lid.startswith(current_prefix)
+    ]
 
     result = []
     for league_id in league_ids:
